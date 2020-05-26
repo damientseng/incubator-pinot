@@ -43,7 +43,7 @@ public class StartControllerCommand extends AbstractBaseAdminCommand implements 
   private String _controllerPort = DEFAULT_CONTROLLER_PORT;
 
   @Option(name = "-dataDir", required = false, metaVar = "<string>", usage = "Path to directory containging data.")
-  private String _dataDir = TMP_DIR + "PinotController";
+  private String _dataDir = CURRENT_USER_DIR + "data/PinotController";
 
   @Option(name = "-zkAddress", required = false, metaVar = "<http>", usage = "Http address of Zookeeper.")
   private String _zkAddress = DEFAULT_ZK_ADDRESS;
@@ -155,6 +155,10 @@ public class StartControllerCommand extends AbstractBaseAdminCommand implements 
         conf.setBrokerResourceValidationFrequencyInSeconds(3600);
 
         conf.setControllerMode(_controllerMode);
+      } else {
+        if (conf.getDataDir() == null) {
+          conf.setDataDir(_dataDir);
+        }
       }
 
       LOGGER.info("Executing command: " + toString());

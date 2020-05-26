@@ -118,11 +118,14 @@ public class StartBrokerCommand extends AbstractBaseAdminCommand implements Comm
         }
 
         brokerConf = new BaseConfiguration();
+        brokerConf.addProperty(CommonConstants.Helix.CONFIG_OF_CLUSTER_NAME, _clusterName);
+        brokerConf.addProperty(CommonConstants.Helix.CONFIG_OF_ZOOKEEPR_SERVER, _zkAddress);
         brokerConf.addProperty(CommonConstants.Helix.KEY_OF_BROKER_QUERY_PORT, _brokerPort);
+        brokerConf.addProperty(CommonConstants.Broker.CONFIG_OF_BROKER_HOSTNAME, _brokerHost);
       }
 
       LOGGER.info("Executing command: " + toString());
-      _brokerStarter = new HelixBrokerStarter(brokerConf, _clusterName, _zkAddress, _brokerHost);
+      _brokerStarter = new HelixBrokerStarter(brokerConf);
       _brokerStarter.start();
 
       String pidFile = ".pinotAdminBroker-" + System.currentTimeMillis() + ".pid";

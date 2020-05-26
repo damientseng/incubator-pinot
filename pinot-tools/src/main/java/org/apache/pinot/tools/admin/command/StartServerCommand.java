@@ -47,10 +47,10 @@ public class StartServerCommand extends AbstractBaseAdminCommand implements Comm
   private int _serverAdminPort = CommonConstants.Server.DEFAULT_ADMIN_API_PORT;
 
   @Option(name = "-dataDir", required = false, metaVar = "<string>", usage = "Path to directory containing data.")
-  private String _dataDir = TMP_DIR + "pinotServerData";
+  private String _dataDir = CURRENT_USER_DIR + "data/pinotServerData";
 
   @Option(name = "-segmentDir", required = false, metaVar = "<string>", usage = "Path to directory containing segments.")
-  private String _segmentDir = TMP_DIR + "pinotSegments";
+  private String _segmentDir = CURRENT_USER_DIR + "data/pinotSegments";
 
   @Option(name = "-zkAddress", required = false, metaVar = "<http>", usage = "Http address of Zookeeper.")
   private String _zkAddress = DEFAULT_ZK_ADDRESS;
@@ -148,16 +148,27 @@ public class StartServerCommand extends AbstractBaseAdminCommand implements Comm
         }
 
         configuration = new PropertiesConfiguration();
+        configuration.addProperty(CommonConstants.Helix.CONFIG_OF_CLUSTER_NAME, _clusterName);
+        configuration.addProperty(CommonConstants.Helix.CONFIG_OF_ZOOKEEPR_SERVER, _zkAddress);
         configuration.addProperty(CommonConstants.Helix.KEY_OF_SERVER_NETTY_HOST, _serverHost);
         configuration.addProperty(CommonConstants.Helix.KEY_OF_SERVER_NETTY_PORT, _serverPort);
         configuration.addProperty(CommonConstants.Server.CONFIG_OF_ADMIN_API_PORT, _serverAdminPort);
-        configuration.addProperty("pinot.server.instance.dataDir", _dataDir + _serverPort + "/index");
-        configuration.addProperty("pinot.server.instance.segmentTarDir", _segmentDir + _serverPort + "/segmentTar");
+        configuration.addProperty(CommonConstants.Server.CONFIG_OF_INSTANCE_DATA_DIR, _dataDir + _serverPort + "/index");
+        configuration.addProperty(CommonConstants.Server.CONFIG_OF_INSTANCE_SEGMENT_TAR_DIR, _segmentDir + _serverPort + "/segmentTar");
+      } else {
+        if (!configuration.containsKey(CommonConstants.Server.CONFIG_OF_INSTANCE_DATA_DIR)) {
+          configuration.setProperty(CommonConstants.Server.CONFIG_OF_INSTANCE_DATA_DIR,
+              _dataDir + configuration.getInt(CommonConstants.Helix.KEY_OF_SERVER_NETTY_PORT, _serverPort) + "/index");
+        }
+        if (!configuration.containsKey(CommonConstants.Server.CONFIG_OF_INSTANCE_SEGMENT_TAR_DIR)) {
+          configuration.setProperty(CommonConstants.Server.CONFIG_OF_INSTANCE_SEGMENT_TAR_DIR,
+              _dataDir + configuration.getInt(CommonConstants.Helix.KEY_OF_SERVER_NETTY_PORT, _serverPort) + "/segmentTar");
+        }
       }
 
       LOGGER.info("Executing command: " + toString());
-      new HelixServerStarter(_clusterName, _zkAddress, configuration);
-      String pidFile = ".pinotAdminServer-" + String.valueOf(System.currentTimeMillis()) + ".pid";
+      new HelixServerStarter(configuration);
+      String pidFile = ".pinotAdminServer-" + System.currentTimeMillis() + ".pid";
       savePID(System.getProperty("java.io.tmpdir") + File.separator + pidFile);
       return true;
     } catch (Exception e) {

@@ -106,15 +106,27 @@ public class HelixServerStarter {
   private final AdminApiApplication _adminApiApplication;
   private final RealtimeLuceneIndexRefreshState _realtimeLuceneIndexRefreshState;
 
+  @Deprecated
   public HelixServerStarter(String helixClusterName, String zkAddress, Configuration serverConf)
       throws Exception {
+    this(applyServerConfig(serverConf, helixClusterName, zkAddress));
+  }
+
+  @Deprecated
+  private static Configuration applyServerConfig(Configuration serverConf, String helixClusterName, String zkAddress) {
+    serverConf.setProperty(CommonConstants.Helix.CONFIG_OF_CLUSTER_NAME, helixClusterName);
+    serverConf.setProperty(CommonConstants.Helix.CONFIG_OF_ZOOKEEPR_SERVER, zkAddress);
+    return serverConf;
+  }
+
+  public HelixServerStarter(Configuration serverConf) throws Exception {
     LOGGER.info("Starting Pinot server");
     long startTimeMs = System.currentTimeMillis();
 
-    _helixClusterName = helixClusterName;
-    _zkAddress = zkAddress;
     // Make a clone so that changes to the config won't propagate to the caller
     _serverConf = ConfigurationUtils.cloneConfiguration(serverConf);
+    _helixClusterName = _serverConf.getString(CommonConstants.Helix.CONFIG_OF_CLUSTER_NAME);
+    _zkAddress = _serverConf.getString(CommonConstants.Helix.CONFIG_OF_ZOOKEEPR_SERVER);
 
     String host = _serverConf.getString(KEY_OF_SERVER_NETTY_HOST,
         _serverConf.getBoolean(CommonConstants.Helix.SET_INSTANCE_ID_TO_HOSTNAME_KEY, false) ? NetUtil
@@ -131,7 +143,7 @@ public class HelixServerStarter {
         _helixClusterName, _instanceId);
     setupHelixSystemProperties();
     _helixManager =
-        HelixManagerFactory.getZKHelixManager(helixClusterName, _instanceId, InstanceType.PARTICIPANT, _zkAddress);
+        HelixManagerFactory.getZKHelixManager(_helixClusterName, _instanceId, InstanceType.PARTICIPANT, _zkAddress);
 
     LOGGER.info("Initializing server instance and registering state model factory");
     Utils.logVersions();
@@ -575,10 +587,12 @@ public class HelixServerStarter {
       throws Exception {
     Configuration serverConf = new BaseConfiguration();
     int port = 8003;
+    serverConf.addProperty(CONFIG_OF_CLUSTER_NAME, "quickstart");
+    serverConf.addProperty(CONFIG_OF_ZOOKEEPR_SERVER, "localhost:2191");
     serverConf.addProperty(KEY_OF_SERVER_NETTY_PORT, port);
     serverConf.addProperty(CONFIG_OF_INSTANCE_DATA_DIR, "/tmp/PinotServer/test" + port + "/index");
     serverConf.addProperty(CONFIG_OF_INSTANCE_SEGMENT_TAR_DIR, "/tmp/PinotServer/test" + port + "/segmentTar");
-    return new HelixServerStarter("quickstart", "localhost:2191", serverConf);
+    return new HelixServerStarter(serverConf);
   }
 
   public static void main(String[] args)
