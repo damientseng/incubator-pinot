@@ -54,7 +54,7 @@ public class StartControllerCommand extends AbstractBaseAdminCommand implements 
   @Option(name = "-controllerMode", required = false, metaVar = "<String>", usage = "Pinot controller mode.")
   private ControllerConf.ControllerMode _controllerMode = ControllerConf.ControllerMode.DUAL;
 
-  @Option(name = "-configFileName", required = false, metaVar = "<FilePathName>", usage = "Controller Starter config file", forbids = {"-controllerHost", "-controllerPort", "-dataDir", "-zkAddress", "-clusterName", "-controllerMode"})
+  @Option(name = "-configFileName", required = false, aliases = {"-config", "-configFile", "-controllerConfig", "-controllerConf"}, metaVar = "<FilePathName>", usage = "Controller Starter config file", forbids = {"-controllerHost", "-controllerPort", "-dataDir", "-zkAddress", "-clusterName", "-controllerMode"})
   private String _configFileName;
 
   @Option(name = "-help", required = false, help = true, aliases = {"-h", "--h", "--help"}, usage = "Print this message.")

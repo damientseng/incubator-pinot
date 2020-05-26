@@ -58,7 +58,7 @@ public class StartServerCommand extends AbstractBaseAdminCommand implements Comm
   @Option(name = "-clusterName", required = false, metaVar = "<String>", usage = "Pinot cluster name.")
   private String _clusterName = "PinotCluster";
 
-  @Option(name = "-configFileName", required = false, metaVar = "<Config File Name>", usage = "Broker Starter Config file.", forbids = {"-serverHost", "-serverPort", "-dataDir", "-segmentDir",})
+  @Option(name = "-configFileName", required = false, aliases = {"-config", "-configFile", "-serverConfig", "-serverConf"}, metaVar = "<Config File Name>", usage = "Broker Starter Config file.", forbids = {"-serverHost", "-serverPort", "-dataDir", "-segmentDir",})
   private String _configFileName;
 
   @Option(name = "-help", required = false, help = true, aliases = {"-h", "--h", "--help"}, usage = "Print this message.")
