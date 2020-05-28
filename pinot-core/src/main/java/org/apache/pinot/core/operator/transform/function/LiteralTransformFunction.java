@@ -26,6 +26,7 @@ import org.apache.pinot.core.operator.blocks.ProjectionBlock;
 import org.apache.pinot.core.operator.transform.TransformResultMetadata;
 import org.apache.pinot.core.plan.DocIdSetPlanNode;
 import org.apache.pinot.core.segment.index.readers.Dictionary;
+import org.apache.pinot.spi.utils.BytesUtils;
 
 
 /**
@@ -35,6 +36,11 @@ import org.apache.pinot.core.segment.index.readers.Dictionary;
 public class LiteralTransformFunction implements TransformFunction {
   private final String _literal;
   private String[] _result;
+  private int[] _intResult;
+  private long[] _longResult;
+  private float[] _floatResult;
+  private double[] _doubleResult;
+  private byte[][] _bytesResult;
 
   public LiteralTransformFunction(String literal) {
     _literal = literal;
@@ -75,22 +81,38 @@ public class LiteralTransformFunction implements TransformFunction {
 
   @Override
   public int[] transformToIntValuesSV(ProjectionBlock projectionBlock) {
-    throw new UnsupportedOperationException();
+    if (_intResult == null) {
+      _intResult = new int[DocIdSetPlanNode.MAX_DOC_PER_CALL];
+      Arrays.fill(_intResult, Integer.parseInt(_literal));
+    }
+    return _intResult;
   }
 
   @Override
   public long[] transformToLongValuesSV(ProjectionBlock projectionBlock) {
-    throw new UnsupportedOperationException();
+    if (_longResult == null) {
+      _longResult = new long[DocIdSetPlanNode.MAX_DOC_PER_CALL];
+      Arrays.fill(_longResult, Long.parseLong(_literal));
+    }
+    return _longResult;
   }
 
   @Override
   public float[] transformToFloatValuesSV(ProjectionBlock projectionBlock) {
-    throw new UnsupportedOperationException();
+    if (_floatResult == null) {
+      _floatResult = new float[DocIdSetPlanNode.MAX_DOC_PER_CALL];
+      Arrays.fill(_floatResult, Float.parseFloat(_literal));
+    }
+    return _floatResult;
   }
 
   @Override
   public double[] transformToDoubleValuesSV(ProjectionBlock projectionBlock) {
-    throw new UnsupportedOperationException();
+    if (_doubleResult == null) {
+      _doubleResult = new double[DocIdSetPlanNode.MAX_DOC_PER_CALL];
+      Arrays.fill(_doubleResult, Double.parseDouble(_literal));
+    }
+    return _doubleResult;
   }
 
   @Override
@@ -104,7 +126,11 @@ public class LiteralTransformFunction implements TransformFunction {
 
   @Override
   public byte[][] transformToBytesValuesSV(ProjectionBlock projectionBlock) {
-    throw new UnsupportedOperationException();
+    if (_bytesResult == null) {
+      _bytesResult = new byte[DocIdSetPlanNode.MAX_DOC_PER_CALL][];
+      Arrays.fill(_bytesResult, BytesUtils.toBytes(_literal));
+    }
+    return _bytesResult;
   }
 
   @Override

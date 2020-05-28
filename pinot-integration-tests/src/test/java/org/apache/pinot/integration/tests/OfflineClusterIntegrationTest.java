@@ -95,6 +95,7 @@ public class OfflineClusterIntegrationTest extends BaseClusterIntegrationTestSet
 
   private final List<ServiceStatus.ServiceStatusCallback> _serviceStatusCallbacks =
       new ArrayList<>(getNumBrokers() + getNumServers());
+  private String _schemaFileName = DEFAULT_SCHEMA_FILE_NAME;
 
   protected int getNumBrokers() {
     return NUM_BROKERS;
@@ -103,8 +104,6 @@ public class OfflineClusterIntegrationTest extends BaseClusterIntegrationTestSet
   protected int getNumServers() {
     return NUM_SERVERS;
   }
-
-  private String _schemaFileName = DEFAULT_SCHEMA_FILE_NAME;
 
   @Override
   protected String getSchemaFileName() {
@@ -750,6 +749,34 @@ public class OfflineClusterIntegrationTest extends BaseClusterIntegrationTestSet
     Assert.assertEquals(val1, val3);
     Assert.assertEquals(val1, val4);
     Assert.assertEquals(val1, val5);
+  }
+
+  @Test
+  public void testCaseWhenStatement()
+      throws Exception {
+    testCountVsCaseQuery("origin = 'ATL'");
+    testCountVsCaseQuery("origin <> 'ATL'");
+
+    testCountVsCaseQuery("DaysSinceEpoch > 16312");
+    testCountVsCaseQuery("DaysSinceEpoch >= 16312");
+    testCountVsCaseQuery("DaysSinceEpoch < 16312");
+    testCountVsCaseQuery("DaysSinceEpoch <= 16312");
+    testCountVsCaseQuery("DaysSinceEpoch = 16312");
+    testCountVsCaseQuery("DaysSinceEpoch <> 16312");
+  }
+
+  private void testCountVsCaseQuery(String predicate)
+      throws Exception {
+    // System.out.println("predicate = " + predicate);
+    String sqlQuery = String.format("SELECT COUNT(*) FROM mytable WHERE %s", predicate);
+    JsonNode response = postSqlQuery(sqlQuery, _brokerBaseApiUrl);
+    // System.out.println(String.format("query = %s, response = %s",sqlQuery, response));
+    long countValue = response.get("resultTable").get("rows").get(0).get(0).asLong();
+    sqlQuery = String.format("SELECT SUM(CASE WHEN %s THEN 1 ELSE 0 END) as sum1 FROM mytable", predicate);
+    response = postSqlQuery(sqlQuery, _brokerBaseApiUrl);
+    // System.out.println(String.format("query = %s, response = %s",sqlQuery, response));
+    long caseSum = response.get("resultTable").get("rows").get(0).get(0).asLong();
+    Assert.assertEquals(caseSum, countValue);
   }
 
   @Test
